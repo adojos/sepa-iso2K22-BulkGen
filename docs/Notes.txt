@@ -1,0 +1,9 @@
+
+how many pmnt blocks? A
+how many trx within each pmnt block? B
+Total A x B.
+
+ConstantValues.csv
+RandomValues.csv
+
+
