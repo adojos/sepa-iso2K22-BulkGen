@@ -12,7 +12,7 @@
 
 Please do not download from source code section as it may not be stable.
 
-Instead use any latest stable release version, available for download from _[Releases](https://github.com/testoxide/vbsx-Validator/releases)_ section
+Instead use any latest stable release version, available for download from _[Releases](https://github.com/testoxide/sepa-iso2K22-BulkGen/releases)_ section
 
 ### How To run
 
@@ -20,9 +20,9 @@ Simply double-click the main script file named 'VBSX_Main.vbs' to launch the uti
 Please note that you might get UAC prompt if UAC is enabled on your windows.
 
 **Note :** _Drag and Drop may work with UAC disabled._
-
+<!--
 _Refer [Wiki](https://github.com/testoxide/vbsx-Validator/wiki) for usage tips, screenshots and [video demo](https://github.com/testoxide/vbsx-Validator/wiki/Video-Demo-&-Overview)_
-
+-->
 
 ### Prerequisites
 
@@ -45,7 +45,7 @@ Require admin privileges / script execution privileges (elevated UAC prompt) on 
 * The validation _parser needs Namespace (targetNamespace)_ which is currently _extracted from the supplied XSD_. Please make sure that 'targetNamespace' declaration if any, in your XSD is correct. The _targetNamespace decalaration is not mandatory_ and hence XSD without targetNamespace are also validated properly.
 
 
-* Please refer ['Further Reading'](https://github.com/testoxide/vbsx-Validator/wiki/Additional-Notes) section of Wiki for more information if required.
+<!--* Please refer ['Further Reading'](https://github.com/testoxide/vbsx-Validator/wiki/Additional-Notes) section of Wiki for more information if required.-->
 
 
 ### Built With
@@ -57,7 +57,7 @@ Require admin privileges / script execution privileges (elevated UAC prompt) on 
 
 ### Known Issues / Bugs
 
-Please refer the [Issue list](https://github.com/testoxide/vbsx-Validator/issues).
+Please refer the [Issue list](https://github.com/testoxide/sepa-iso2K22-BulkGen/issues).
 
 Feel free to contribte by logging any new defects, issues or enhancement requests
 
@@ -68,5 +68,5 @@ Feel free to contribte by logging any new defects, issues or enhancement request
 
 ### License
 
-This is licensed under the MIT License - see the [LICENSE.md](https://github.com/testoxide/vbsx-Validator/blob/master/LICENSE) file for details
+This is licensed under the MIT License - see the [LICENSE.md](https://github.com/testoxide/sepa-iso2K22-BulkGen/blob/master/LICENSE) file for details
 
