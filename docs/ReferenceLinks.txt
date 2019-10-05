@@ -1,0 +1,17 @@
+
+
+XML Validation Service
+https://wiki.xmldation.com/General_Information/ISO_20022/pain.008
+
+
+ISO 20022 Message Archive
+https://www.iso20022.org/full_catalogue.page
+https://www.iso20022.org/catalogue_of_messages.page
+https://www.iso20022.org/message_archive.page
+
+
+SEPA XML in a Nutshell 
+https://www.sepaforcorporates.com/sepa-implementation/sepa-xml-in-a-nutshell/
+
+
+http://www.deeppay.net/sepa/

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 rel. 3 (http://www.altova.com)  -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.008.001.01 pain.008.001.01.xsd">
+	<CstmrDrctDbtInitn>
+		<GrpHdr>
+			<MsgId>24APR2009-FT25-422683</MsgId>
+			<CreDtTm>2008-07-25T14:48:00</CreDtTm>
+			<BtchBookg>false</BtchBookg>
+			<NbOfTxs>1</NbOfTxs>
+			<CtrlSum>12.02</CtrlSum>
+			<Grpg>SNGL</Grpg>
+			<InitgPty>
+				<Nm>Creditor Corporate</Nm>
+				<PstlAdr>
+					<AdrLine>Add1</AdrLine>
+					<StrtNm>12 Rue d'Arcole</StrtNm>
+					<BldgNb>36</BldgNb>
+					<PstCd>PA123</PstCd>
+					<TwnNm>Paris</TwnNm>
+					<Ctry>FR</Ctry>
+				</PstlAdr>
+			</InitgPty>
+		</GrpHdr>
+		<PmtInf>
+			<PmtInfId>CAVAY/88683</PmtInfId>
+			<PmtMtd>DD</PmtMtd>
+			<PmtTpInf>
+				<InstrPrty>NORM</InstrPrty>
+				<SvcLvl>
+					<Cd>SEPA</Cd>
+				</SvcLvl>
+				<LclInstrm>
+					<Cd>B2B</Cd>
+				</LclInstrm>
+				<SeqTp>RCUR</SeqTp>
+			</PmtTpInf>
+			<ReqdColltnDt>2010-04-02</ReqdColltnDt>
+			<Cdtr>
+				<Nm>Schneider AG</Nm>
+				<PstlAdr>
+					<AdrLine>Add1</AdrLine>
+					<StrtNm>12 Rue d'Arcole</StrtNm>
+					<BldgNb>36</BldgNb>
+					<PstCd>PA123</PstCd>
+					<TwnNm>Paris</TwnNm>
+					<Ctry>FR</Ctry>
+				</PstlAdr>
+			</Cdtr>
+			<CdtrAcct>
+				<Id>
+					<IBAN>DE89370400440532013000</IBAN>
+				</Id>
+			</CdtrAcct>
+			<CdtrAgt>
+				<FinInstnId>
+					<BIC>DRESDEF1BRL</BIC>
+				</FinInstnId>
+			</CdtrAgt>
+			<UltmtCdtr>
+				<Nm>UltimateCr1</Nm>
+			</UltmtCdtr>
+			<DrctDbtTxInf>
+				<PmtId>
+					<EndToEndId>24APR2009-FT25-011-INST422683</EndToEndId>
+				</PmtId>
+				<InstdAmt Ccy="EUR">12.02
+                </InstdAmt>
+				<ChrgBr>SLEV</ChrgBr>
+				<DrctDbtTx>
+					<MndtRltdInf>
+						<MndtId>PC-FT25000000000021013</MndtId>
+						<DtOfSgntr>2009-09-03</DtOfSgntr>
+						<AmdmntInd>false</AmdmntInd>
+						<FnlColltnDt>2019-06-09</FnlColltnDt>
+						<Frqcy>WEEK</Frqcy>
+					</MndtRltdInf>
+					<CdtrSchmeId>
+						<Id>
+							<PrvtId>
+								<OthrId>
+									<Id>GB14ZZZ123456</Id>
+									<IdTp>SEPA</IdTp>
+								</OthrId>
+							</PrvtId>
+						</Id>
+					</CdtrSchmeId>
+				</DrctDbtTx>
+				<DbtrAgt>
+					<FinInstnId>
+						<BIC>BAOFESMMXXX</BIC>
+					</FinInstnId>
+				</DbtrAgt>
+				<Dbtr>
+					<Nm>Debtor Corporate</Nm>
+					<PstlAdr>
+						<StrtNm>StrtNm</StrtNm>
+						<BldgNb>BldgNb</BldgNb>
+						<PstCd>PstCd</PstCd>
+						<TwnNm>LONDON</TwnNm>
+						<Ctry>US</Ctry>
+					</PstlAdr>
+					<CtryOfRes>AF</CtryOfRes>
+				</Dbtr>
+				<DbtrAcct>
+					<Id>
+						<IBAN>BE62510007547061</IBAN>
+					</Id>
+				</DbtrAcct>
+				<Purp>
+					<Prtry>1234567890</Prtry>
+				</Purp>
+				<RmtInf>
+					<Ustrd>Test Payments</Ustrd>
+				</RmtInf>
+			</DrctDbtTxInf>
+		</PmtInf>
+	</CstmrDrctDbtInitn>
+</Document>
