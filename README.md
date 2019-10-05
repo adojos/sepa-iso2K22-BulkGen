@@ -1,6 +1,5 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![GitHub repo size](https://img.shields.io/github/repo-size/testoxide/sepa-iso2K22-BulkGen) ![platform](https://img.shields.io/badge/platform-win--32%20%7C%20win--64-lightgrey)
 <!--![GitHub release (latest by date)](https://img.shields.io/github/v/release/testoxide/vbsx-Validator)-->
-![GitHub repo size](https://img.shields.io/github/repo-size/testoxide/sepa-iso2K22-BulkGen)
 
 # sepa-iso2K22-BulkGen
 1) Tested for supporting PAIN.008.001.001 and PAIN.008.001.002 (version 1&2)
