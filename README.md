@@ -68,5 +68,5 @@ Feel free to contribte by logging any new defects, issues or enhancement request
 
 ### License
 
-This is licensed under the MIT License - see the [LICENSE.md](https://github.com/testoxide/sepa-iso2K22-BulkGen/blob/master/LICENSE) file for details
+This is licensed under the Apache-2.0 License - see the [LICENSE.md](https://github.com/testoxide/sepa-iso2K22-BulkGen/blob/master/LICENSE) file for details
 
