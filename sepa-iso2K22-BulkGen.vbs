@@ -428,27 +428,50 @@ End Function
 
 Public Function GeneratePAIN008 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 
-Dim iCount
+Dim iCount, iInstAmount, iTotalDbtTrx
+Dim nNbOfTxs, nCtrlSum
+
+iTotalDbtTrx = iNumPmtBlocks*PmtCounter
+
 Set ObjFSO = CreateObject("Scripting.FileSystemObject")
 
-'Set strHdrNodes = ObjXMLDoc.selectsingleNode("//ns:MsgId")
-Set strHdrNodes = GetSingleNode(ObjXMLDoc,"//ns:MsgId")
+' GROUP HEADER NODES UPDATED HERE ...
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:MsgId")
 strHdrNodes.Text = "MsgID" & GetRandomChars(ObjFSO)
 Set strHdrNodes = Nothing
 
-Set strHdrNodes = GetSingleNode(ObjXMLDoc,"//ns:NbOfTxs")
-strHdrNodes.Text = CLng(strHdrNodes.Text) + CLng(PmtCounter)
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:NbOfTxs")
+strHdrNodes.Text = CLng(iTotalDbtTrx)
 Set strHdrNodes = Nothing
 
-Set strHdrNodes = GetSingleNode(ObjXMLDoc,"//ns:CtrlSum")
-strHdrNodes.Text = CCur(strHdrNodes.Text) + CCur(strHdrNodes.Text*PmtCounter)
+'GET DDTRXAMOUNT FOR SINGLE PAYMENT
+Set strDbtTxInfNodes = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf/ns:DrctDbtTxInf/ns:InstdAmt")
+iInstAmount = CCur(strDbtTxInfNodes.Text)
+Set strDbtTxInfNodes = Nothing
+	
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:CtrlSum")
+strHdrNodes.Text = CCur(iInstAmount * iTotalDbtTrx)
 Set strHdrNodes = Nothing
 
 'PMNTINFO NODE CLONED HERE ...
-Set sPmtInfoCpy1 = GetSingleNode(ObjXMLDoc,"//ns:PmtInf").CloneNode(True)
+Set sPmtInfoCpy1 = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf").CloneNode(True)
 Set stemps = ObjXMLDoc.selectNodes("//ns:PmtInf")
 stemps.RemoveAll
 Set stemps = Nothing
+
+'CHECK AND SET PMNTINFO (OPTIONAL) SUB-NODE PRESENT OR NOT ...
+Set strPmtInfNodes = GetSingleNode(sPmtInfoCpy1,False,"//ns:NbOfTxs")
+If Not(strPmtInfNodes Is Nothing) Then
+	strPmtInfNodes.Text = CLng(PmtCounter)
+End If
+Set strHdrNodes = Nothing
+
+Set strPmtInfNodes = GetSingleNode(sPmtInfoCpy1,False,"//ns:CtrlSum")
+If Not(strPmtInfNodes Is Nothing) Then
+	strPmtInfNodes.Text = CLng(iInstAmount * PmtCounter)
+End If
+Set strPmtInfNodes = Nothing
+
 
 For iNum = 1 To iNumPmtBlocks
 	
@@ -456,13 +479,12 @@ For iNum = 1 To iNumPmtBlocks
 	Set strPmtInfo1 = sPmtInfoCpy1.CloneNode(True)
 	
 	''CLONED PMNTINFO EDITED HERE ...
-	Set strHdrNodes = GetSingleNode(strPmtInfo1,"//ns:PmtInfId")
-	strHdrNodes.Text = "PmtID" & GetRandomChars(ObjFSO)
-	''CHANGE CRDTR BIC/IBAN TAGS HERE ...
-	Set strHdrNodes = Nothing
-	
+	Set strPmtInfNodes = GetSingleNode(strPmtInfo1,True,"//ns:PmtInfId")
+	strPmtInfNodes.Text = "PmtID" & GetRandomChars(ObjFSO)
+	Set strPmtInfNodes = Nothing
+
 	''DDTRX NODE CLONED HERE ...
-	Set sDDTrxCpy1 = GetSingleNode(strPmtInfo1,"//ns:DrctDbtTxInf").CloneNode(True)
+	Set sDDTrxCpy1 = GetSingleNode(strPmtInfo1,True,"//ns:DrctDbtTxInf").CloneNode(True)
 	Set stemps = strPmtInfo1.selectNodes("//ns:DrctDbtTxInf")
 	stemps.RemoveAll
 	Set stemps = Nothing
@@ -474,7 +496,7 @@ For iNum = 1 To iNumPmtBlocks
 		End If
 
 		Set sTempNode = sDDTrxCpy1.CloneNode(True)
-		Set sEndToEndID = GetSingleNode(sTempNode,"//ns:EndToEndId")
+		Set sEndToEndID = GetSingleNode(sTempNode,True,"//ns:EndToEndId")
 			sEndToEndID.Text = iCount & GetRandomChars(ObjFSO)
 		Set sEndToEndID = Nothing
 		
@@ -498,7 +520,8 @@ For iNum = 1 To iNumPmtBlocks
 	Set strPmtInfo1 = Nothing
 	Set sDDTrxCpy1 = Nothing
 	
-	GetSingleNode(ObjXMLDoc,"//ns:CstmrDrctDbtInitn").AppendChild oDocFrag
+	'PMNTINFO DOC FRAG APPENDED TO OBJXML HERE ...
+	GetSingleNode(ObjXMLDoc,True,"//ns:CstmrDrctDbtInitn").AppendChild oDocFrag
 	Set oDocFrag = Nothing
 
 Next
@@ -755,7 +778,7 @@ End Function
 
 '###########################################################################
 
-Public Function GetSingleNode (ObjXMLDocFrag, strXPathString)
+Public Function GetSingleNode (ObjXMLDocFrag, IsThrowErr, strXPathString)
 
 Dim ObjTempNode 
 Set ObjTempNode = ObjXMLDocFrag.selectSingleNode(strXPathString)
@@ -763,12 +786,17 @@ Set ObjTempNode = ObjXMLDocFrag.selectSingleNode(strXPathString)
 If Not(ObjTempNode is Nothing) Then
 	Set GetSingleNode = ObjTempNode
 Else
-	Call ConsoleOutput ("<ERROR> INVALID XML. NODE NOT FOUND ! : " & strXPathString, "verbose", LogHandle)
-	If IsReloadExit("") Then
-		Call StartSEPABulkGen()
-	Else
-		ExitApp()
-	End If
+	Select Case IsThrowErr
+		Case False
+			Set GetSingleNode = Nothing		
+		Case True
+			Call ConsoleOutput ("<ERROR> INVALID XML. NODE NOT FOUND ! : " & strXPathString, "verbose", LogHandle)
+			If IsReloadExit("") Then
+				Call StartSEPABulkGen()
+			Else
+				ExitApp()
+			End If
+	End Select
 End If
 
 End Function
@@ -961,7 +989,7 @@ WScript.StdOut.WriteBlankLines(1)
 WScript.StdOut.WriteLine "      " & "****************************************************************"
 WScript.StdOut.WriteLine "      " & "----------------------------------------------------------------"
 WScript.StdOut.WriteBlankLines(1)
-WScript.StdOut.WriteLine VBTab & vbTab & "   " & "sepa-Iso2K22-BulkGen version 1.0.2"
+WScript.StdOut.WriteLine VBTab & vbTab & "   " & "sepa-Iso2K22-BulkGen version 1.0.5"
 WScript.StdOut.WriteBlankLines(1)
 WScript.StdOut.WriteLine VBTab & "    " & "SEPA Compliant Bulk XML File Generator and Validator"
 WScript.StdOut.WriteBlankLines(1)
