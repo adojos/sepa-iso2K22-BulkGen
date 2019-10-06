@@ -28,6 +28,8 @@ _Refer [Wiki](https://github.com/testoxide/vbsx-Validator/wiki) for usage tips, 
 
 Win 7 / 8 / Server.
 
+User provided 'seed' or 'template' file for each specific file type (pain008, pacs003) to be produced.
+
 MSXML6 Official Download [here](https://www.microsoft.com/en-us/download/details.aspx?id=3988)
 
 Require admin privileges / script execution privileges (elevated UAC prompt) on your windows system.
