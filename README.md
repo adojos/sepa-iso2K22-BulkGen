@@ -38,9 +38,7 @@ Require admin privileges / script execution privileges (elevated UAC prompt) on 
 
 * The Parser has been designed _'not to resolve externals'_. It does not evaluate or resolve the 'schemaLocation' or other attributes specified in DocumentRoot for locating schemas. The reason is that most of the time schemaLocation is not always valid or resolvable as XML travels system to system. _Hence this design avoids non-schema related errors_.
 
-* The parser _validates strictly against the supplied XSD_ (schema definition) only without auto-resolving schemaLocation or other nameSpace attributes from the XML document. This provides robust validation against supplied XSD.
-
-* The validation parser inherently validates all XML for well-formedness / structural.
+* The parser _validates strictly against the supplied XSD_ (schema definition) only without auto-resolving schemaLocation or other nameSpace attributes from the XML document. This provides robust validation against supplied XSD. Also the validation parser inherently validates all XML for well-formedness / structural.
 
 * The validation _parser needs Namespace (targetNamespace)_ which is currently _extracted from the supplied XSD_. Please make sure that 'targetNamespace' declaration if any, in your XSD is correct. The _targetNamespace decalaration is not mandatory_ and hence XSD without targetNamespace are also validated properly.
 
