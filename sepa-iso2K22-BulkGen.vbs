@@ -659,6 +659,11 @@ End If
 Set strHdrNodes = Nothing
 
 Set sSelectedNode = GetSingleNode(ObjXMLDoc,True,"//ns:DrctDbtTxInf").CloneNode(True)
+
+Set stemps = ObjXMLDoc.selectNodes("//ns:DrctDbtTxInf")
+stemps.RemoveAll
+Set stemps = Nothing
+
 Set oDocFrag = ObjXMLDoc.CreateDocumentFragment
 
 For iCount = 1 To PmtCounter
