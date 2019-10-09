@@ -37,7 +37,8 @@ End If
 
 '#######################################################################################################
 
-Dim LogHandle, strAppOutputDir
+Dim LogHandle, strAppOutputDir, arrPAIN001AmtOption
+arrPAIN001AmtOption = Array("//ns:InstdAmt","//ns:EqvtAmt/ns:Amt")
 
 Const strInvalid = "invalid"
 Const strFile = "file"
@@ -279,7 +280,7 @@ Select Case sFormatChoice
 		ConsoleOutput "", "verbose", LogHandle
 		ConsoleOutput "SPECIFY NUMBER OF PAYMENT INSTRUCTION INFO BLOCKS (PmtInf) ?", "verbose", LogHandle
 		iPmtInfCount = ConsoleInput()
-		ConsoleOutput "SPECIFY NUMBER OF DEBIT TRANSACTIONS (CdtTrfTxInf) ?", "verbose", LogHandle		
+		ConsoleOutput "SPECIFY NUMBER OF CREDIT TRANSACTIONS (CdtTrfTxInf) ?", "verbose", LogHandle		
 		iTrxCount = ConsoleInput()
 		If IsNumeric(iPmtInfCount) And IsNumeric(iTrxCount) Then
 			GetTrxFileCount = Array(iPmtInfCount,iTrxCount)
@@ -595,7 +596,6 @@ For iNum = 1 To iNumPmtBlocks
 
 Next
 
-Set ObjFSO = Nothing
 
 End Function	
 
@@ -774,7 +774,7 @@ Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 	Dim nNbOfTxs, nCtrlSum
 	
 	iTotalDbtTrx = iNumPmtBlocks*PmtCounter
-	
+
 	' GROUP HEADER NODES UPDATED HERE ...
 	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:MsgId")
 	strHdrNodes.Text = "MsgID" & GetRandomChars()
@@ -783,16 +783,20 @@ Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:NbOfTxs")
 	strHdrNodes.Text = CLng(iTotalDbtTrx)
 	Set strHdrNodes = Nothing
-	
-	'GET DDTRXAMOUNT FOR SINGLE PAYMENT
-	Set strDbtTxInfNodes = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf/ns:DrctDbtTxInf/ns:InstdAmt")
-	iInstAmount = CCur(strDbtTxInfNodes.Text)
-	Set strDbtTxInfNodes = Nothing
-		
-	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:CtrlSum")
-	strHdrNodes.Text = CCur(iInstAmount * iTotalDbtTrx)
+
+	'GET CRDTTRXAMOUNT FOR SINGLE PAYMENT
+	Set strCrdtTxInfNodes = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf/ns:CdtTrfTxInf/ns:Amt")
+	Set ObjOptionalNode = GetChoiceNode(strCrdtTxInfNodes,arrPAIN001AmtOption)
+	iInstAmount = ObjOptionalNode.Text
+	Set strCrdtTxInfNodes = Nothing
+	Set ObjOptionalNode = Nothing
+
+	Set strHdrNodes = GetSingleNode(ObjXMLDoc,False,"//ns:CtrlSum")
+	If Not(strHdrNodes Is Nothing) Then
+		strHdrNodes.Text = CCur(iInstAmount * iTotalDbtTrx)
+	End If
 	Set strHdrNodes = Nothing
-	
+		
 	'PMNTINFO NODE CLONED HERE ...
 	Set sPmtInfoCpy1 = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf").CloneNode(True)
 	Set stemps = ObjXMLDoc.selectNodes("//ns:PmtInf")
@@ -823,16 +827,16 @@ Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 		strPmtInfNodes.Text = "PmtID" & GetRandomChars()
 		Set strPmtInfNodes = Nothing
 	
-		''DDTRX NODE CLONED HERE ...
-		Set sDDTrxCpy1 = GetSingleNode(strPmtInfo1,True,"//ns:DrctDbtTxInf").CloneNode(True)
-		Set stemps = strPmtInfo1.selectNodes("//ns:DrctDbtTxInf")
+		''CREDITTRX NODE CLONED HERE ...
+		Set sDDTrxCpy1 = GetSingleNode(strPmtInfo1,True,"//ns:CdtTrfTxInf").CloneNode(True)
+		Set stemps = strPmtInfo1.selectNodes("//ns:CdtTrfTxInf")
 		stemps.RemoveAll
 		Set stemps = Nothing
 		
 		For iCount = 1 To PmtCounter
 			If iCount = 1 Then
-				Call ConsoleOutput(" ========" & " STARTED GENERATING DEBIT TRANSACTIONS [DrctDbtTxInf] " & "========", "verbose", LogHandle)
-				Call ConsoleOutput("Started Generating " & PmtCounter & " Debit Transactions at " & Now, "verbose", LogHandle)
+				Call ConsoleOutput(" ========" & " STARTED GENERATING CREDIT TRANSACTIONS [CdtTrfTxInf] " & "========", "verbose", LogHandle)
+				Call ConsoleOutput("Started Generating " & PmtCounter & " Credit Transactions at " & Now, "verbose", LogHandle)
 			End If
 	
 			Set sTempNode = sDDTrxCpy1.CloneNode(True)
@@ -843,11 +847,11 @@ Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 			strPmtInfo1.AppendChild sTempNode
 			Set sTempNode = Nothing
 			
-			Call ConsoleOutput ("Generating Debit Transaction ... " & iCount, "nolog", LogHandle)
+			Call ConsoleOutput ("Generating Credit Transaction ... " & iCount, "nolog", LogHandle)
 			
 			If iCount = CLng(PmtCounter) Then
 				Call ConsoleOutput ("All " & PmtCounter & " Payments Generated Successfully at " & Now, "verbose", LogHandle)
-				Call ConsoleOutput ("=============" & " COMPLETED TRANSACTION GENERATION [DrctDbtTxInf]" & "============", "verbose", LogHandle)
+				Call ConsoleOutput ("=============" & " COMPLETED TRANSACTION GENERATION [CdtTrfTxInf]" & "============", "verbose", LogHandle)
 			End If
 		Next
 		
@@ -861,23 +865,22 @@ Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
 		Set sDDTrxCpy1 = Nothing
 		
 		'PMNTINFO DOC FRAG APPENDED TO OBJXML HERE ...
-		GetSingleNode(ObjXMLDoc,True,"//ns:CstmrDrctDbtInitn").AppendChild oDocFrag
+		GetSingleNode(ObjXMLDoc,True,"//ns:CstmrCdtTrfInitn").AppendChild oDocFrag
 		Set oDocFrag = Nothing
 	
 	Next
 	
-	Set ObjFSO = Nothing
 	
-	End Function	
+End Function	
 	
 
 '###########################################################################
 
 
-Public Function GetSingleNode (ObjXMLDocFrag, IsThrowErr, strXPathString)
+Public Function GetSingleNode (ObjXMLDomNode, IsThrowErr, strXPathString)
 
 Dim ObjTempNode 
-Set ObjTempNode = ObjXMLDocFrag.selectSingleNode(strXPathString)
+Set ObjTempNode = ObjXMLDomNode.selectSingleNode(strXPathString)
 
 If Not(ObjTempNode is Nothing) Then
 	Set GetSingleNode = ObjTempNode
@@ -894,6 +897,29 @@ Else
 			End If
 	End Select
 End If
+
+End Function
+
+'###########################################################################
+
+Public Function GetChoiceNode (ObjParentDomNode, arrXPathString)
+
+Dim ObjTempNode, iCount
+
+iCount = 0
+For each strXPath in arrXPathString
+	msgbox strXPath
+	Set ObjTempNode = GetSingleNode (ObjParentDomNode, False, strXPath)
+	If Not(ObjTempNode Is Nothing) Then
+		Set GetChoiceNode = ObjTempNode
+		iCount = iCount + 1
+		msgbox "hi"
+	End if
+Next
+
+If (iCount = 0) Then
+	GetChoiceNode = Nothing
+End if
 
 End Function
 
