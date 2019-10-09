@@ -1,9 +1,57 @@
 
-how many pmnt blocks? A
-how many trx within each pmnt block? B
-Total A x B.
+The 'sepa-iso2K22-BulkGen' is a script based desktop utility capable of generating SEPA compliant 'Bulk' (large sized) XML 'payment messages' (ISO2022) for 'Performance Testing' (NFT). It makes use of the windows based, legacy, but powerful MSXML API (msxml*.dll). The app also supports XSD validation of SEPA payment message XMLs against the user specified XSDs for PAIN and PACS formats. It is specifically targetted for generating 'large-sized XMLs' from performance testing perspective and not necessarly built for functional or business level file generation / validations.
 
-ConstantValues.csv
-RandomValues.csv
+
+
+------------------------------------------------------------------------------------
+
+This app is targeted for producing large sized 'PAIN' and 'PACS' file for 'Performance Testing' scenarios. Hence it does not cater to producing 'Unique' data / values for each XML node within the file. The 'Unique' values are produced for a bare minimum number of XML nodes like 'EndToEndID, MsgID, NbOfTrx, Amount' etc. but not all.
+
+With the objective of producing 'Bulk Files' (for NFT, Performance tests) rather then functional or UAT, the app sinply works by copying a transaction from the seed file and appending multiple times to create a large valid document.
+
+The user has the option to supply the required valuse (e.g Dates, BIC, IBAN etc.) hard coded in the 'seed / template' file. The app can use these values from the seed file to create bulk file by re-using these values as-is. In other words, all the values provided in the seed file shall be duplicated except few mandated as unique.
+
+
+PLEASE MAKE SURE THAT THE SEED FILE HAS CORRECT DATA AND IS PRE-VALIDATED BY USER!
+
+DOES NOT SUPPORT SUPPLEMENTARY DATA NODE  'SplmtryData'
+
+
+PAIN008 Bulk File Generation
+-----------------------------
+
+1) Tested for PAIN.008.001.002 and PAIN.008.001.004
+2) Generates large sized PAIN8 file, which are based on user supplied 'seed / template' Pain8 file. Sample seed / template files are in example directory.
+3) The seed file is required to contain atleast 1 complete transaction e.g atleast 1 'PmntInf' node and 1 'DrctDbtTxInf' node. You can use seed file containing 100s of transaction however only the first transaction shall be duplicted (repeatedly appended) and rest of all the transactions in the seed file shall be stripped off and ignored.
+3) The app works by appending number of 'PmtInf' and 'DrctDbtTxInf' to a copy of  'seed' file (created in memory). The required number of 'PmtInf' and 'DrctDbtTxInf' to be appended are user specified.
+4) The resulting bulk file is validated against the user specified XSD, if operating under 'Generation & Validation' mode.
+5)
+
+
+About XML Sample Files
+----------------------
+
+The sample XML files included in the source code are available from ISO 20022 Message Catalog Archive, available in public domain from https://www.iso20022.org/message_archive.page
+https://www.iso20022.org/payments_messages.page
+
+
+Payment Message Formats
+-----------------------
+FIToFICustomerCreditTransferV04	pacs.008.001.04
+FIToFICustomerDirectDebitV04	pacs.003.001.04
+CustomerDirectDebitInitiationV04	pain.008.001.04
+CustomerCreditTransferInitiationV05	pain.001.001.05
+
+
+Useful Links & Resources
+-------------------------
+
+https://wiki.xmldation.com/General_Information/ISO_20022
+https://www.sepaforcorporates.com/
+https://www.ecb.europa.eu/paym/retpaym/html/index.en.html
+
+
+
+
 
 

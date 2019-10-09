@@ -208,7 +208,9 @@ Select Case sFormatChoice
 	Case "2"
 		Call GeneratePACS003 (ObjSeedFile, iNumPmtBlocks, strNumTrx)
 	Case "3"
-		Call GeneratePACS008 (ObjSeedFile, strNumTrx)
+		Call GeneratePACS008 (ObjSeedFile, iNumPmtBlocks, strNumTrx)
+	Case "4"
+		Call GeneratePAIN001 (ObjSeedFile, iNumPmtBlocks, strNumTrx)
 	Case Else
 		ConsoleOutput "INVALID CHOICE!", "verbose", LogHandle
 End Select
@@ -255,7 +257,37 @@ Select Case sFormatChoice
 			GetTrxFileCount = False
 		End If
 	Case "3"	'PACS008
-		Call GeneratePACS008 (ObjSeedFile, strNumTrx)
+		ConsoleOutput "", "verbose", LogHandle
+		ConsoleOutput "-----------------------------------------------------------------------", "nolog", LogHandle
+		ConsoleOutput "NOTE: TOTAL TRANSACTIONS  = [No. of 'CdtTrfTxInf'] ", "nolog", LogHandle		
+		ConsoleOutput "-----------------------------------------------------------------------", "nolog", LogHandle
+		ConsoleOutput "", "verbose", LogHandle
+		ConsoleOutput "SPECIFY NUMBER OF CREDIT TRANSACTIONS (CdtTrfTxInf) ?", "verbose", LogHandle		
+		iTrxCount = ConsoleInput()
+		If IsNumeric(iTrxCount) Then
+			GetTrxFileCount = Array("",iTrxCount)
+		Else
+			ConsoleOutput "", "verbose", LogHandle
+			ConsoleOutput "<ERROR> INVALID INPUT! PLEASE TRY AGAIN ...", "verbose", LogHandle
+			GetTrxFileCount = False
+		End If
+	Case "4"	'PAIN001
+		ConsoleOutput "", "verbose", LogHandle
+		ConsoleOutput "-----------------------------------------------------------------------", "nolog", LogHandle
+		ConsoleOutput "NOTE: TOTAL TRANSACTIONS  = [No. Of 'PmtInf'] x [No. of 'CdtTrfTxInf'] ", "nolog", LogHandle		
+		ConsoleOutput "-----------------------------------------------------------------------", "nolog", LogHandle
+		ConsoleOutput "", "verbose", LogHandle
+		ConsoleOutput "SPECIFY NUMBER OF PAYMENT INSTRUCTION INFO BLOCKS (PmtInf) ?", "verbose", LogHandle
+		iPmtInfCount = ConsoleInput()
+		ConsoleOutput "SPECIFY NUMBER OF DEBIT TRANSACTIONS (CdtTrfTxInf) ?", "verbose", LogHandle		
+		iTrxCount = ConsoleInput()
+		If IsNumeric(iPmtInfCount) And IsNumeric(iTrxCount) Then
+			GetTrxFileCount = Array(iPmtInfCount,iTrxCount)
+		Else
+			ConsoleOutput "", "verbose", LogHandle
+			ConsoleOutput "<ERROR> INVALID INPUT! PLEASE TRY AGAIN ...", "verbose", LogHandle
+			GetTrxFileCount = False
+		End If
 	Case Else
 		ConsoleOutput "INVALID CHOICE!", "verbose", LogHandle
 End Select
@@ -569,59 +601,82 @@ End Function
 
 '###########################################################################
 
-Public Function GeneratePACS008 (ByRef ObjXMLDoc, PmtCounter)
-Dim iCount
+Public Function GeneratePACS008 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
+Dim iCount, iAmount
 
-Set strHdrNodes = ObjXMLDoc.selectsingleNode("//ns:MsgId")
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:MsgId")
 strHdrNodes.Text = "MsgID" & GetRandomChars()
 Set strHdrNodes = Nothing
 
-Set strHdrNodes = ObjXMLDoc.selectsingleNode("//ns:NbOfTxs")
-strHdrNodes.Text = CLng(strHdrNodes.Text) + CLng(PmtCounter)
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:NbOfTxs")
+strHdrNodes.Text = CLng(PmtCounter)	'CInt(strHdrNodes.Text) + CLng(PmtCounter)
 Set strHdrNodes = Nothing
 
-Set strHdrNodes = ObjXMLDoc.selectsingleNode("//ns:TtlIntrBkSttlmAmt")
-strHdrNodes.Text = CCur(strHdrNodes.Text) + CCur(strHdrNodes.Text*PmtCounter)
+Set strCdtrTxInfNodes = GetSingleNode(ObjXMLDoc,True,"//ns:CdtTrfTxInf/ns:IntrBkSttlmAmt")
+iAmount = CCur(strCdtrTxInfNodes.Text)
+Set strCdtrTxInfNodes = Nothing
+
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,False,"//ns:CtrlSum")
+If Not(strHdrNodes Is Nothing) Then
+	strHdrNodes.Text = CCur(iAmount * PmtCounter)
+End If
 Set strHdrNodes = Nothing
 
-Set sSelectedNode = ObjXMLDoc.selectsingleNode("//ns:CdtTrfTxInf").CloneNode(True)
+Set strHdrNodes = GetSingleNode(ObjXMLDoc,False,"//ns:TtIntrBkSttlmAmt")
+If Not(strHdrNodes Is Nothing) Then
+	strHdrNodes.Text = CCur(iAmount * PmtCounter)
+End If
+Set strHdrNodes = Nothing
+
+Set sSelectedNode = GetSingleNode(ObjXMLDoc,True,"//ns:CdtTrfTxInf").CloneNode(True)
+
+Set stemps = ObjXMLDoc.selectNodes("//ns:CdtTrfTxInf")
+stemps.RemoveAll
+Set stemps = Nothing
+
 Set oDocFrag = ObjXMLDoc.CreateDocumentFragment
 
 For iCount = 1 To PmtCounter
 
 	If iCount = 1 Then
-		Call ConsoleOutput("========" & " XML FILE GENERATION PROCESS STARTED " & "========", "verbose")
-		Call ConsoleOutput("Started Generating " & PmtCounter & " Payments at " & Now & "...", "verbose")
+		ConsoleOutput "", "verbose", LogHandle
+		Call ConsoleOutput(" ========" & " STARTED GENERATING CREDIT TRANSACTIONS [CdtTrfTxInf] " & "========", "verbose", LogHandle)
+		Call ConsoleOutput("Started Generating " & PmtCounter & " Credit Transactions at " & Now, "verbose", LogHandle)
 	End If
-	strE2EIds = "RNDID" & iCount
+	
+	strE2EIds = Left(GetRandomChars(),4) & "RNDID" & iCount
 	
 	Set sTempNode = sSelectedNode.CloneNode(True)
-	Set sEndToEndID = sTempNode.selectsingleNode("//ns:InstrId")
-		sEndToEndID.Text = strE2EIds
-	Set sEndToEndID = Nothing
-	
-	Set sEndToEndID = sTempNode.selectsingleNode("//ns:EndToEndId")
-		sEndToEndID.Text = strE2EIds
-	Set sEndToEndID = Nothing
-	
-	Set sEndToEndID = sTempNode.selectsingleNode("//ns:TxId")
-		sEndToEndID.Text = strE2EIds
-	Set sEndToEndID = Nothing
-	
-	oDocFrag.AppendChild sTempNode
-	sTempNode = Nothing
 
-	Call ConsoleOutput ("Generating Payment ... " & iCount, "nolog")
+	Set sEndToEndID = GetSingleNode(sTempNode,False,"//ns:PmtId/ns:InstrId")
+	If Not(sEndToEndID Is Nothing) Then
+		sEndToEndID.Text = strE2EIds
+	End If
+	Set sEndToEndID = Nothing
+	
+	Set sEndToEndID = GetSingleNode(sTempNode,True,"//ns:PmtId/ns:EndToEndId")
+		sEndToEndID.Text = strE2EIds
+	Set sEndToEndID = Nothing
+
+	Set sEndToEndID = GetSingleNode(sTempNode,True,"//ns:PmtId/ns:TxId")
+		sEndToEndID.Text = strE2EIds
+	Set sEndToEndID = Nothing
+
+	oDocFrag.AppendChild sTempNode
+	Set sTempNode = Nothing
+
+	Call ConsoleOutput ("Generating Payment ... " & iCount, "nolog", LogHandle)
 	
 	if iCount = CLng(PmtCounter) Then
-		Call ConsoleOutput ("All " & PmtConter & " Payments generated successfully at " & Now, "verbose")
-		Call ConsoleOutput ("=================" & " PROCESS ENDED " & "=================" & vbCrLf & vbCrLf, "verbose")
+		Call ConsoleOutput ("All " & PmtCounter & " Payments Generated Successfully at " & Now, "verbose", LogHandle)
+		Call ConsoleOutput ("=============" & " COMPLETED TRANSACTION GENERATION [CdtTrfTxInf]" & "============", "verbose", LogHandle)
+		ConsoleOutput "", "verbose", LogHandle
 	End If
-
 Next
 
+
 Set sSelectedNode = Nothing
-ObjXMLDoc.selectsingleNode("//ns:FIToFICstmrCdtTrf").AppendChild oDocFrag
+GetSingleNode(ObjXMLDoc,True,"//ns:FIToFICstmrCdtTrf").AppendChild oDocFrag
 Set oDocFrag = Nothing
 
 End Function
@@ -673,7 +728,8 @@ For iCount = 1 To PmtCounter
 		Call ConsoleOutput(" ========" & " STARTED GENERATING DEBIT TRANSACTIONS [DrctDbtTxInf] " & "========", "verbose", LogHandle)
 		Call ConsoleOutput("Started Generating " & PmtCounter & " Debit Transactions at " & Now, "verbose", LogHandle)
 	End If
-	strE2EIds = "RNDID" & iCount
+	
+	strE2EIds = Left(GetRandomChars(),4) & "RNDID" & iCount
 	
 	Set sTempNode = sSelectedNode.CloneNode(True)
 	
@@ -681,7 +737,7 @@ For iCount = 1 To PmtCounter
 	If Not(sEndToEndID Is Nothing) Then
 		sEndToEndID.Text = strE2EIds
 	End If
-	Set sEndToEndID2 = Nothing
+	Set sEndToEndID = Nothing
 	
 	Set sEndToEndID = GetSingleNode(sTempNode,True,"//ns:PmtId/ns:EndToEndId")
 	sEndToEndID.Text = strE2EIds
@@ -709,6 +765,111 @@ GetSingleNode(ObjXMLDoc,True,"//ns:FIToFICstmrDrctDbt").AppendChild oDocFrag
 Set oDocFrag = Nothing
 
 End Function
+
+'###########################################################################
+
+Public Function GeneratePAIN001 (ByRef ObjXMLDoc, iNumPmtBlocks, PmtCounter)
+
+	Dim iCount, iInstAmount, iTotalDbtTrx
+	Dim nNbOfTxs, nCtrlSum
+	
+	iTotalDbtTrx = iNumPmtBlocks*PmtCounter
+	
+	' GROUP HEADER NODES UPDATED HERE ...
+	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:MsgId")
+	strHdrNodes.Text = "MsgID" & GetRandomChars()
+	Set strHdrNodes = Nothing
+	
+	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:NbOfTxs")
+	strHdrNodes.Text = CLng(iTotalDbtTrx)
+	Set strHdrNodes = Nothing
+	
+	'GET DDTRXAMOUNT FOR SINGLE PAYMENT
+	Set strDbtTxInfNodes = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf/ns:DrctDbtTxInf/ns:InstdAmt")
+	iInstAmount = CCur(strDbtTxInfNodes.Text)
+	Set strDbtTxInfNodes = Nothing
+		
+	Set strHdrNodes = GetSingleNode(ObjXMLDoc,True,"//ns:CtrlSum")
+	strHdrNodes.Text = CCur(iInstAmount * iTotalDbtTrx)
+	Set strHdrNodes = Nothing
+	
+	'PMNTINFO NODE CLONED HERE ...
+	Set sPmtInfoCpy1 = GetSingleNode(ObjXMLDoc,True,"//ns:PmtInf").CloneNode(True)
+	Set stemps = ObjXMLDoc.selectNodes("//ns:PmtInf")
+	stemps.RemoveAll
+	Set stemps = Nothing
+	
+	'CHECK AND SET PMNTINFO (OPTIONAL) SUB-NODE PRESENT OR NOT ...
+	Set strPmtInfNodes = GetSingleNode(sPmtInfoCpy1,False,"//ns:NbOfTxs")
+	If Not(strPmtInfNodes Is Nothing) Then
+		strPmtInfNodes.Text = CLng(PmtCounter)
+	End If
+	Set strHdrNodes = Nothing
+	
+	Set strPmtInfNodes = GetSingleNode(sPmtInfoCpy1,False,"//ns:CtrlSum")
+	If Not(strPmtInfNodes Is Nothing) Then
+		strPmtInfNodes.Text = CLng(iInstAmount * PmtCounter)
+	End If
+	Set strPmtInfNodes = Nothing
+	
+	
+	For iNum = 1 To iNumPmtBlocks
+		
+		Call ConsoleOutput("=========" & " STARTED GENERATING PAYMENT INSTRUCTION BLOCK [PmtInf] " & "=========", "verbose", LogHandle)
+		Set strPmtInfo1 = sPmtInfoCpy1.CloneNode(True)
+		
+		''CLONED PMNTINFO EDITED HERE ...
+		Set strPmtInfNodes = GetSingleNode(strPmtInfo1,True,"//ns:PmtInfId")
+		strPmtInfNodes.Text = "PmtID" & GetRandomChars()
+		Set strPmtInfNodes = Nothing
+	
+		''DDTRX NODE CLONED HERE ...
+		Set sDDTrxCpy1 = GetSingleNode(strPmtInfo1,True,"//ns:DrctDbtTxInf").CloneNode(True)
+		Set stemps = strPmtInfo1.selectNodes("//ns:DrctDbtTxInf")
+		stemps.RemoveAll
+		Set stemps = Nothing
+		
+		For iCount = 1 To PmtCounter
+			If iCount = 1 Then
+				Call ConsoleOutput(" ========" & " STARTED GENERATING DEBIT TRANSACTIONS [DrctDbtTxInf] " & "========", "verbose", LogHandle)
+				Call ConsoleOutput("Started Generating " & PmtCounter & " Debit Transactions at " & Now, "verbose", LogHandle)
+			End If
+	
+			Set sTempNode = sDDTrxCpy1.CloneNode(True)
+			Set sEndToEndID = GetSingleNode(sTempNode,True,"//ns:EndToEndId")
+				sEndToEndID.Text = iCount & GetRandomChars()
+			Set sEndToEndID = Nothing
+			
+			strPmtInfo1.AppendChild sTempNode
+			Set sTempNode = Nothing
+			
+			Call ConsoleOutput ("Generating Debit Transaction ... " & iCount, "nolog", LogHandle)
+			
+			If iCount = CLng(PmtCounter) Then
+				Call ConsoleOutput ("All " & PmtCounter & " Payments Generated Successfully at " & Now, "verbose", LogHandle)
+				Call ConsoleOutput ("=============" & " COMPLETED TRANSACTION GENERATION [DrctDbtTxInf]" & "============", "verbose", LogHandle)
+			End If
+		Next
+		
+		'PMNTINFO NODE APPENDED TO THE DOC FRAG HERE ...
+		Set oDocFrag = ObjXMLDoc.CreateDocumentFragment
+		oDocFrag.AppendChild strPmtInfo1
+		
+		Call ConsoleOutput("========" & " COMPLETED GENERATING PAYMENT INSTRUCTION BLOCK [PmtInf] " & "========" & vbCrLf & vbCrLf & vbCrLf, "verbose", LogHandle)
+	
+		Set strPmtInfo1 = Nothing
+		Set sDDTrxCpy1 = Nothing
+		
+		'PMNTINFO DOC FRAG APPENDED TO OBJXML HERE ...
+		GetSingleNode(ObjXMLDoc,True,"//ns:CstmrDrctDbtInitn").AppendChild oDocFrag
+		Set oDocFrag = Nothing
+	
+	Next
+	
+	Set ObjFSO = Nothing
+	
+	End Function	
+	
 
 '###########################################################################
 
@@ -1000,6 +1161,8 @@ WScript.StdOut.WriteLine "SELECT THE FILE FORMAT BELOW [Example: Input 1 for PAI
 WScript.StdOut.WriteBlankLines(1)
 WScript.StdOut.WriteLine "1. DD PAYMENT INITIATION PAIN.008"
 WScript.StdOut.WriteLine "2. DD CLEARING SETTLEMENT PACS.003"
+WScript.StdOut.WriteLine "3. CREDIT CLEARING SETTLEMENT PACS.008"
+WScript.StdOut.WriteLine "4. CREDIT TRANSFER INITIATION PAIN.001"
 WScript.StdOut.WriteBlankLines(1)
 
 End Sub
