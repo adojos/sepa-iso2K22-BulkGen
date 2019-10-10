@@ -8,6 +8,8 @@
 4) However the app is quite scalable and any such specific rules or customization can be easily built on top of the existing codebase (on-demand) since it already provides a ground framework.
 5) Feel free to submit such business rule specification as requirement or enhancement on the project issue tracker.
 
+**Note: PAIN008, PAIN001, PACS003 and PACS008 Generation is complete (ModeGenOnly). Other two modes are pending i.e. ModeValOnly and ModeValAndGen.**
+
 ### Download
 
 Please do not download from source code section as it may not be stable.
